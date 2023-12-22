@@ -1,0 +1,15 @@
+{% extends 'auctions/layout.html' %}
+
+<!-- Here we make it possible for the user to see if the user has added something to his watchlist -->
+{% block body %}
+    <h2>Your Watchlist</h2>
+    <ul>
+        {% for listing in watchlist %} 
+            <li>
+                <a href="{% url 'listing' listing.id %}">{{ listing.title }}</a> <!-- Here we pass the listing.id from views.py -->
+            </li>
+        {% empty %}
+            <p>You have no items in your watchlist.</p>
+        {% endfor %}
+    </ul>
+{% endblock %}

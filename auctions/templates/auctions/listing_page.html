@@ -1,0 +1,82 @@
+{% extends "auctions/layout.html" %}
+
+<!-- This is the page that displays the listing. It shows the title, description, current bid, and image (if one exists). -->
+{% block body %}
+  <h2>{{ listing.title }}</h2>
+  <p>{{ listing.description }}</p>
+  <p>Current Bid: {{ listing.current_bid }}</p> 
+  {% if listing.image_url %}
+    <img src="{{ listing.image_url }}" alt="{{ listing.title }}" style="max-width: 300px; height: auto;">
+  {% endif %}
+
+   <!-- Bidding Form - Places bids on a listing. If the user is login, they can enter a bid amount. The bid must be higher than the current maximum bid or the starting bid. --> 
+   {% if user.is_authenticated %}
+   <form action="{% url 'place_bid' listing.id %}" method="post"> 
+     {% csrf_token %}
+     <div class="form-group">
+       <label for="bid_amount">Your Bid:</label>
+       <input type="number" name="bid_amount" id="bid_amount" class="form-control" 
+              min="{{ current_max_bid_amount|default:listing.starting_bid|floatformat:2|add:"0.01" }}" 
+              step="0.01" required>
+     </div>
+     <button type="submit" class="btn btn-primary">Place Bid</button>
+   </form>
+   <br>
+   {% endif %}
+
+
+<!-- Close Auction Button -->
+ {% if user.is_authenticated and user == listing.user and listing.active %}
+  <form action="{% url 'close_auction' listing.id %}" method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Close Auction</button>
+  </form>
+{% endif %}
+
+{% if not listing.active %}
+{% if user.is_authenticated and listing.winner == user %}
+  <div class="alert alert-success" role="alert">
+    Congratulations! You won this auction.
+  </div>
+{% endif %}
+
+  <!-- Display messages -->
+  {% if messages %}
+    <div>
+      {% for message in messages %}
+        <div {% if message.tags %}class="{{ message.tags }}"{% endif %}>
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    <input type="submit" name="watchlist_toggle" value="{% if on_watchlist %}Remove from{% else %}Add to{% endif %} Watchlist">
+</form>
+
+<!-- Comments Section on the listing page, where it is possible for users who are logged in, to comment on listing -->
+<hr>
+<h3>Comments</h3>
+{% for comment in listing.comments.all %}
+  <div class="comment">
+    <strong>{{ comment.user.username }}</strong>
+    <p>{{ comment.content }}</p>
+    <p class="text-muted">{{ comment.created_at }}</p>
+  </div>
+{% empty %}
+  <p>No comments yet.</p>
+{% endfor %}
+
+{% if user.is_authenticated %}
+    <form method="post">
+        {% csrf_token %}
+        {{ comment_form.as_p }}  
+        <button type="submit" name="post_comment">Post Comment</button>
+    </form>
+{% endif %}
+
+  
+{% endblock %}

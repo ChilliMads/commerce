@@ -1,0 +1,20 @@
+{% extends "auctions/layout.html" %}
+
+<!-- This is the home page of our website and here all active listings are shown. -->
+{% block body %}
+  <h2>Active Listings</h2>
+  <div class="listings">
+    {% for listing in active_listings %}
+      <div class="listing">
+        <h3><a href="{% url 'listing' listing.id %}">{{ listing.title }}</a></h3>
+        <p>{{ listing.description }}</p>
+        <p>Starting Bid: {{ listing.starting_bid }}</p>  
+        {% if listing.image_url %}
+          <img src="{{ listing.image_url }}" alt="{{ listing.title }}" style="max-width: 300px; height: auto;">
+        {% endif %}
+      </div>
+    {% empty %}
+      <p>No active listings available.</p>
+    {% endfor %}
+  </div>
+{% endblock %}
